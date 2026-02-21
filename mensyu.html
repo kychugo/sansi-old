@@ -1680,6 +1680,9 @@ transform: scale(1.1);
 // let currentApiKeyIndex = 0; // 這個變數不再需要，可以刪除或註解掉
 const API_URL = "https://open.bigmodel.cn/api/paas/v4/chat/completions";
 const MODEL = "glm-4.7-flash";
+const FALLBACK_API_URL = "https://gen.pollinations.ai/v1/chat/completions";
+const FALLBACK_API_KEY = "sk_vuIaBgMibteEX3Z0gLoM4DHfE8cDfQOj";
+const FALLBACK_MODEL = "gemini-search";
 
 // 懸浮窗狀態管理
 let isFloatingEnabled = true;
@@ -2092,6 +2095,15 @@ async function callApi(prompt) {
 
     // 從 API_KEYS 陣列中隨機抽取一個 KEY
     const apiKey = API_KEYS[Math.floor(Math.random() * API_KEYS.length)];
+    const requestBody = {
+        model: MODEL,
+        messages: [{
+            role: "user",
+            content: prompt
+        }],
+        temperature: 0.5,
+        max_tokens: 64000
+    };
 
     try {
         const response = await fetch(API_URL, {
@@ -2100,25 +2112,32 @@ async function callApi(prompt) {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${apiKey}` // 使用隨機抽取的 apiKey
             },
-            body: JSON.stringify({
-                model: MODEL,
-                messages: [{
-                    role: "user",
-                    content: prompt
-                }],
-                temperature: 0.5,
-                max_tokens: 64000
-            })
+            body: JSON.stringify(requestBody)
         });
         if (!response.ok) throw new Error(`API 請求失敗: ${response.status}`);
         const data = await response.json();
         if (data.error) throw new Error(`API 返回錯誤: ${data.error.message}`);
         return data;
     } catch (error) {
-        // 將原始錯誤向上拋出，由 callApiWithRetry 函式來決定是否重試。
-        // 每次重試時，都會重新執行此函式並再次隨機抽取一個 Key。
-        console.error('API 調用錯誤:', error);
-        throw error;
+        // 主要 API 失敗，切換至備用 API (pollinations.ai)
+        console.warn('主要 API 調用失敗，嘗試備用 API...', error);
+        try {
+            const fallbackResponse = await fetch(FALLBACK_API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${FALLBACK_API_KEY}`
+                },
+                body: JSON.stringify({ ...requestBody, model: FALLBACK_MODEL })
+            });
+            if (!fallbackResponse.ok) throw new Error(`備用 API 請求失敗: ${fallbackResponse.status}`);
+            const fallbackData = await fallbackResponse.json();
+            if (fallbackData.error) throw new Error(`備用 API 返回錯誤: ${fallbackData.error.message}`);
+            return fallbackData;
+        } catch (fallbackError) {
+            console.error('備用 API 也失敗:', fallbackError);
+            throw fallbackError;
+        }
     }
 }
 

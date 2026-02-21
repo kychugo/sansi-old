@@ -6227,6 +6227,9 @@ const API_KEYS = [
 // let currentApiKeyIndex = 0; // 這個變數不再需要，可以刪除或註解掉
 const API_URL = "https://open.bigmodel.cn/api/paas/v4/chat/completions";
 const MODEL = "glm-4.7-flash";
+const FALLBACK_API_URL = "https://gen.pollinations.ai/v1/chat/completions";
+const FALLBACK_API_KEY = "sk_vuIaBgMibteEX3Z0gLoM4DHfE8cDfQOj";
+const FALLBACK_MODEL = "gemini-search";
 
 		// 新配置（僅實用寫作使用）
 const PRACTICAL_API_KEYS = [
@@ -7856,18 +7859,40 @@ async function callAPI(requestBody, modelOverride = null) {
 
     const effectiveModel = modelOverride || MODEL;  // 使用傳入模型或默認
 
-    const response = await fetch(API_URL, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${selectedApiKey}` // <--- 使用隨機抽取的KEY
-        },
-        body: JSON.stringify({
-            ...requestBody,
-            model: effectiveModel  // 動態設置模型
-        })
-    });
+    let response;
+    try {
+        response = await fetch(API_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${selectedApiKey}` // <--- 使用隨機抽取的KEY
+            },
+            body: JSON.stringify({
+                ...requestBody,
+                model: effectiveModel  // 動態設置模型
+            })
+        });
+    } catch (fetchError) {
+        console.warn('主要 API 請求出錯:', fetchError);
+        response = null;
+    }
     
+    if (!response || !response.ok) {
+        // 主要 API 失敗，切換至備用 API (pollinations.ai)
+        console.warn(`主要 API 失敗，切換至備用 API...`);
+        response = await fetch(FALLBACK_API_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${FALLBACK_API_KEY}`
+            },
+            body: JSON.stringify({
+                ...requestBody,
+                model: FALLBACK_MODEL
+            })
+        });
+    }
+
     updateProgressBar(60);
 
     if (!response.ok) {

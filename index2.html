@@ -5565,6 +5565,9 @@ const API_KEYS = [
 // let currentApiKeyIndex = 0; // 這個變數不再需要，可以刪除或註解掉
 const API_URL = "https://open.bigmodel.cn/api/paas/v4/chat/completions";
 const MODEL = "glm-4.7-flash";
+const FALLBACK_API_URL = "https://gen.pollinations.ai/v1/chat/completions";
+const FALLBACK_API_KEY = "sk_vuIaBgMibteEX3Z0gLoM4DHfE8cDfQOj";
+const FALLBACK_MODEL = "gemini-search";
 
 
 // [新增] 閱讀專用 API 配置
@@ -5663,7 +5666,29 @@ console.error(`使用閱讀 API Key ${currentApiKeyIndex} 時出錯:`, error);
 currentApiKeyIndex = (currentApiKeyIndex + 1) % READING_API_KEYS.length;
 attempts++;
 if (attempts >= maxAttempts) {
-throw new Error("所有 API 密鑰均無法使用");
+// 切換至備用 API (pollinations.ai)
+console.warn("所有閱讀 API 密鑰均無法使用，切換至備用 API...");
+const fallbackBody = {
+model: FALLBACK_MODEL,
+messages: [{
+role: "user",
+content: prompt
+}]
+};
+if (temperature !== null) fallbackBody.temperature = temperature;
+const fallbackResponse = await fetch(FALLBACK_API_URL, {
+method: "POST",
+headers: {
+"Authorization": `Bearer ${FALLBACK_API_KEY}`,
+"Content-Type": "application/json"
+},
+body: JSON.stringify(fallbackBody)
+});
+if (!fallbackResponse.ok) throw new Error("備用 API 也無法使用");
+const fallbackData = await fallbackResponse.json();
+let fallbackContent = fallbackData.choices?.[0]?.message?.content?.trim() || '';
+fallbackContent = fallbackContent.replace(/<think\s*>.*?<\/think\s*>|<think\s*\/>|<think\s*>|<\/think\s*>/gis, '').trim();
+return fallbackContent;
 }
 }
 }
@@ -7322,7 +7347,29 @@ console.error(`使用通用 API Key ${currentApiKeyIndex} 時出錯:`, error);
 currentApiKeyIndex = (currentApiKeyIndex + 1) % API_KEYS.length;
 attempts++;
 if (attempts >= maxAttempts) {
-throw new Error("所有 API 密鑰均無法使用");
+// 切換至備用 API (pollinations.ai)
+console.warn("所有通用 API 密鑰均無法使用，切換至備用 API...");
+const fallbackBody = {
+model: FALLBACK_MODEL,
+messages: [{
+role: "user",
+content: prompt
+}]
+};
+if (temperature !== null) fallbackBody.temperature = temperature;
+const fallbackResponse = await fetch(FALLBACK_API_URL, {
+method: "POST",
+headers: {
+"Authorization": `Bearer ${FALLBACK_API_KEY}`,
+"Content-Type": "application/json"
+},
+body: JSON.stringify(fallbackBody)
+});
+if (!fallbackResponse.ok) throw new Error("備用 API 也無法使用");
+const fallbackData = await fallbackResponse.json();
+let fallbackContent = fallbackData.choices?.[0]?.message?.content?.trim() || '';
+fallbackContent = fallbackContent.replace(/<think\s*>.*?<\/think\s*>|<think\s*\/>|<think\s*>|<\/think\s*>/gis, '').trim();
+return fallbackContent;
 }
 }
 }
@@ -7393,7 +7440,29 @@ async function callLlama3API(prompt, temperature = null) {
             currentApiKeyIndex = (currentApiKeyIndex + 1) % LLAMA3_API_KEYS.length;
             attempts++;
             if (attempts >= maxAttempts) {
-                throw new Error("所有 Llama3 API 密鑰均無法使用");
+                // 切換至備用 API (pollinations.ai)
+                console.warn("所有 Llama3 API 密鑰均無法使用，切換至備用 API...");
+                const fallbackBody = {
+                    model: FALLBACK_MODEL,
+                    messages: [{
+                        role: "user",
+                        content: prompt
+                    }]
+                };
+                if (temperature !== null) fallbackBody.temperature = temperature;
+                const fallbackResponse = await fetch(FALLBACK_API_URL, {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${FALLBACK_API_KEY}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(fallbackBody)
+                });
+                if (!fallbackResponse.ok) throw new Error("備用 API 也無法使用");
+                const fallbackData = await fallbackResponse.json();
+                let fallbackContent = fallbackData.choices?.[0]?.message?.content?.trim() || '';
+                fallbackContent = fallbackContent.replace(/<think\s*>.*?<\/think\s*>|<think\s*\/>|<think\s*>|<\/think\s*>/gis, '').trim();
+                return fallbackContent;
             }
         }
     }
