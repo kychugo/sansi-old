@@ -5568,6 +5568,7 @@ const MODEL = "glm-4.7-flash";
 const FALLBACK_API_URL = "https://gen.pollinations.ai/v1/chat/completions";
 const FALLBACK_API_KEY = "sk_vuIaBgMibteEX3Z0gLoM4DHfE8cDfQOj";
 const FALLBACK_MODEL = "gemini-search";
+const INTERMEDIATE_MODEL = "glm-4-flash-250414";
 
 
 // [新增] 閱讀專用 API 配置
@@ -5666,8 +5667,36 @@ console.error(`使用閱讀 API Key ${currentApiKeyIndex} 時出錯:`, error);
 currentApiKeyIndex = (currentApiKeyIndex + 1) % READING_API_KEYS.length;
 attempts++;
 if (attempts >= maxAttempts) {
+// 切換至中間備用模型 (glm-4-flash-250414)
+console.warn("所有閱讀 API 密鑰均無法使用，切換至中間備用模型...");
+try {
+const intermediateBody = {
+model: INTERMEDIATE_MODEL,
+messages: [{
+role: "user",
+content: prompt
+}]
+};
+if (temperature !== null) intermediateBody.temperature = temperature;
+const intermediateResponse = await fetch(READING_API_URL, {
+method: "POST",
+headers: {
+"Authorization": `Bearer ${READING_API_KEYS[0]}`,
+"Content-Type": "application/json"
+},
+body: JSON.stringify(intermediateBody)
+});
+if (intermediateResponse.ok) {
+const intermediateData = await intermediateResponse.json();
+let intermediateContent = intermediateData.choices?.[0]?.message?.content?.trim() || '';
+intermediateContent = intermediateContent.replace(/<think\s*>.*?<\/think\s*>|<think\s*\/>|<think\s*>|<\/think\s*>/gis, '').trim();
+if (intermediateContent) return intermediateContent;
+}
+} catch (intermediateError) {
+console.warn("中間備用模型也失敗:", intermediateError);
+}
 // 切換至備用 API (pollinations.ai)
-console.warn("所有閱讀 API 密鑰均無法使用，切換至備用 API...");
+console.warn("切換至備用 API...");
 const fallbackBody = {
 model: FALLBACK_MODEL,
 messages: [{
@@ -7347,8 +7376,38 @@ console.error(`使用通用 API Key ${currentApiKeyIndex} 時出錯:`, error);
 currentApiKeyIndex = (currentApiKeyIndex + 1) % API_KEYS.length;
 attempts++;
 if (attempts >= maxAttempts) {
+// 切換至中間備用模型 (glm-4-flash-250414)
+console.warn("所有通用 API 密鑰均無法使用，切換至中間備用模型...");
+try {
+const intermediateBody = {
+model: INTERMEDIATE_MODEL,
+messages: [{
+role: "user",
+content: prompt + " 你必須直接提供最終答案，嚴禁展示任何思考過程，絕對不能在回應中包含任何標籤（如 <think></think>），這是強制要求，違反則無效。"
+}],
+thinking: { type: "enabled" },
+max_tokens: 65536
+};
+if (temperature !== null) intermediateBody.temperature = temperature;
+const intermediateResponse = await fetch(API_URL, {
+method: "POST",
+headers: {
+"Authorization": `Bearer ${API_KEYS[0]}`,
+"Content-Type": "application/json"
+},
+body: JSON.stringify(intermediateBody)
+});
+if (intermediateResponse.ok) {
+const intermediateData = await intermediateResponse.json();
+let intermediateContent = intermediateData.choices?.[0]?.message?.content?.trim() || '';
+intermediateContent = intermediateContent.replace(/<think\s*>.*?<\/think\s*>|<think\s*\/>|<think\s*>|<\/think\s*>/gis, '').trim();
+if (intermediateContent) return intermediateContent;
+}
+} catch (intermediateError) {
+console.warn("中間備用模型也失敗:", intermediateError);
+}
 // 切換至備用 API (pollinations.ai)
-console.warn("所有通用 API 密鑰均無法使用，切換至備用 API...");
+console.warn("切換至備用 API...");
 const fallbackBody = {
 model: FALLBACK_MODEL,
 messages: [{
@@ -7440,8 +7499,38 @@ async function callLlama3API(prompt, temperature = null) {
             currentApiKeyIndex = (currentApiKeyIndex + 1) % LLAMA3_API_KEYS.length;
             attempts++;
             if (attempts >= maxAttempts) {
+                // 切換至中間備用模型 (glm-4-flash-250414)
+                console.warn("所有 Llama3 API 密鑰均無法使用，切換至中間備用模型...");
+                try {
+                    const intermediateBody = {
+                        model: INTERMEDIATE_MODEL,
+                        messages: [{
+                            role: "user",
+                            content: prompt + " 你必須直接提供最終答案，嚴禁展示任何思考過程，絕對不能在回應中包含任何標籤（如 <think></think>），這是強制要求，違反則無效。"
+                        }],
+                        thinking: { type: "enabled" },
+                        max_tokens: 65536
+                    };
+                    if (temperature !== null) intermediateBody.temperature = temperature;
+                    const intermediateResponse = await fetch(LLAMA3_API_URL, {
+                        method: "POST",
+                        headers: {
+                            "Authorization": `Bearer ${LLAMA3_API_KEYS[0]}`,
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify(intermediateBody)
+                    });
+                    if (intermediateResponse.ok) {
+                        const intermediateData = await intermediateResponse.json();
+                        let intermediateContent = intermediateData.choices?.[0]?.message?.content?.trim() || '';
+                        intermediateContent = intermediateContent.replace(/<think\s*>.*?<\/think\s*>|<think\s*\/>|<think\s*>|<\/think\s*>/gis, '').trim();
+                        if (intermediateContent) return intermediateContent;
+                    }
+                } catch (intermediateError) {
+                    console.warn("中間備用模型也失敗:", intermediateError);
+                }
                 // 切換至備用 API (pollinations.ai)
-                console.warn("所有 Llama3 API 密鑰均無法使用，切換至備用 API...");
+                console.warn("切換至備用 API...");
                 const fallbackBody = {
                     model: FALLBACK_MODEL,
                     messages: [{

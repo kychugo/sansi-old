@@ -1463,6 +1463,7 @@ const MODEL = "glm-4.7-flash";
 const FALLBACK_API_URL = "https://gen.pollinations.ai/v1/chat/completions";
 const FALLBACK_API_KEY = "sk_vuIaBgMibteEX3Z0gLoM4DHfE8cDfQOj";
 const FALLBACK_MODEL = "gemini-search";
+const INTERMEDIATE_MODEL = "glm-4-flash-250414";
 // --- DOM 元素獲取 ---
 const ui = {
     container: document.querySelector('.container'),
@@ -1586,6 +1587,37 @@ async function getApiResponse(prompt, temperature, seed = null) {
     }
 
     console.error("All API keys exhausted. Last error:", lastError);
+
+    // 切換至中間備用模型 (glm-4-flash-250414)
+    try {
+        console.warn("Switching to intermediate model (glm-4-flash-250414)...");
+        const intermediateBody = {
+            model: INTERMEDIATE_MODEL,
+            messages: [
+                { role: "system", content: "You are a helpful assistant that always responds in Traditional Chinese." },
+                { role: "user", content: prompt }
+            ],
+            max_tokens: 800,
+            temperature: temperature
+        };
+        if (seed !== null) intermediateBody.seed = seed;
+        const intermediateResponse = await fetch(API_URL_BASE, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${API_KEYS[0]}`
+            },
+            body: JSON.stringify(intermediateBody)
+        });
+        if (intermediateResponse.ok) {
+            const intermediateData = await intermediateResponse.json();
+            if (intermediateData.choices?.[0]?.message?.content) {
+                return intermediateData.choices[0].message.content.trim();
+            }
+        }
+    } catch (intermediateError) {
+        console.error("Intermediate model also failed:", intermediateError);
+    }
 
     // 切換至備用 API (pollinations.ai)
     try {
