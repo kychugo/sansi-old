@@ -9,7 +9,7 @@ style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.goog
 font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com;
 img-src 'self' https: data: https://*.streamable.com https://heapanalytics.com;
 media-src 'self' https://youfulca.com https://*.streamable.com https://assets.mixkit.co https://taira-komori.net;
-connect-src 'self' https://v1.hitokoto.cn https://chatapi.akash.network https://text.pollinations.ai https://gen.pollinations.ai  https://router.huggingface.co https://api.llm7.io https://*.streamable.com https://cdn.jsdelivr.net https://api-fawn-chi.vercel.app https://heapanalytics.com;
+connect-src 'self' https://v1.hitokoto.cn https://chatapi.akash.network https://text.pollinations.ai https://gen.pollinations.ai  https://router.huggingface.co https://api.llm7.io https://*.streamable.com https://cdn.jsdelivr.net https://api-fawn-chi.vercel.app https://heapanalytics.com https://open.bigmodel.cn;
 frame-src 'self' https://streamable.com https://kenchan20151.pyscriptapps.com https://kenchan20141.github.io https://sansi.vercel.app https://lyricschi.vercel.app https://penpalchi.vercel.app https://litstudy.vercel.app https://621d05f47d591.site123.me https://script.google.com https://www.i2ocr.com;
 object-src 'none';
 base-uri 'self';
@@ -5560,28 +5560,20 @@ clickedButton.classList.add('active');
 
 // API 配置信息
 const API_KEYS = [
-   "pk_D77NeM4n6GnNCYbo",
-"pk_c17y17tQ3BY71cpd",
-"pk_Ax3rRTHkrdTQVIGD",
-"pk_dGVqEggn4T4dwQI3",
-"pk_YIFWnDFts0quviE0"
+   "c43794c4fd6f460c9e154f81034e6ae4.0tLyirbYWKDqUAcw"
 ];
 // let currentApiKeyIndex = 0; // 這個變數不再需要，可以刪除或註解掉
-const API_URL = "https://gen.pollinations.ai/v1/chat/completions";
-const MODEL = "gemini";
+const API_URL = "https://open.bigmodel.cn/api/paas/v4/chat/completions";
+const MODEL = "glm-4.7-flash";
 
 
 // [新增] 閱讀專用 API 配置
 const READING_API_KEYS = [
-   "pk_D77NeM4n6GnNCYbo",
-"pk_c17y17tQ3BY71cpd",
-"pk_Ax3rRTHkrdTQVIGD",
-"pk_dGVqEggn4T4dwQI3",
-"pk_YIFWnDFts0quviE0"
+   "c43794c4fd6f460c9e154f81034e6ae4.0tLyirbYWKDqUAcw"
 ];
 // let currentReadingApiKeyIndex = 0; // 這個變數不再需要，可以刪除或註解掉
-const READING_API_URL = "https://gen.pollinations.ai/v1/chat/completions";
-const READING_MODEL = "deepseek";
+const READING_API_URL = "https://open.bigmodel.cn/api/paas/v4/chat/completions";
+const READING_MODEL = "glm-4.7-flash";
 
 
 // ======= 請在這裡加入以下程式碼 =======
@@ -5629,7 +5621,8 @@ messages: [{
 role: "user",
 content: prompt + " 你必須直接提供最終答案，嚴禁展示任何思考過程，絕對不能在回應中包含任何標籤（如 <think></think>），這是強制要求，違反則無效。"
 }],
-max_tokens: 64000
+thinking: { type: "enabled" },
+max_tokens: 65536
 };
 
 if (temperature !== null) {
@@ -7287,7 +7280,8 @@ messages: [{
 role: "user",
 content: prompt + " 你必須直接提供最終答案，嚴禁展示任何思考過程，絕對不能在回應中包含任何標籤（如 <think></think>），這是強制要求，違反則無效。"
 }],
-max_tokens: 64000
+thinking: { type: "enabled" },
+max_tokens: 65536
 };
 
 if (temperature !== null) {
@@ -7339,15 +7333,10 @@ throw new Error("所有 API 密鑰均無法使用");
 // === 【全新增設】Llama-3 驗證模型專用 API 呼叫函式 ===
 // =======================================================
 const LLAMA3_API_KEYS = [
-   "pk_D77NeM4n6GnNCYbo",
-"pk_c17y17tQ3BY71cpd",
-"pk_c17y17tQ3BY71cpd",
-"pk_Ax3rRTHkrdTQVIGD",
-"pk_dGVqEggn4T4dwQI3",
-"pk_YIFWnDFts0quviE0"
+   "c43794c4fd6f460c9e154f81034e6ae4.0tLyirbYWKDqUAcw"
 ];
-const LLAMA3_API_URL = "https://gen.pollinations.ai/v1/chat/completions";
-const LLAMA3_MODEL = "gemini"; // 指定新的驗證模型
+const LLAMA3_API_URL = "https://open.bigmodel.cn/api/paas/v4/chat/completions";
+const LLAMA3_MODEL = "glm-4.7-flash"; // 指定新的驗證模型
 
 async function callLlama3API(prompt, temperature = null) {
     let attempts = 0;
@@ -7362,7 +7351,8 @@ async function callLlama3API(prompt, temperature = null) {
                     role: "user",
                     content: prompt + " 你必須直接提供最終答案，嚴禁展示任何思考過程，絕對不能在回應中包含任何標籤（如 <think></think>），這是強制要求，違反則無效。"
                 }],
-                max_tokens: 64000
+                thinking: { type: "enabled" },
+                max_tokens: 65536
             };
 
             if (temperature !== null) {
