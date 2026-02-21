@@ -6222,27 +6222,18 @@ const writingQuestionBank = {
 
         // API 配置
 const API_KEYS = [
-   "pk_D77NeM4n6GnNCYbo",
-"pk_c17y17tQ3BY71cpd",
-"pk_Ax3rRTHkrdTQVIGD",
-"pk_dGVqEggn4T4dwQI3",
-"pk_YIFWnDFts0quviE0"
+   "c43794c4fd6f460c9e154f81034e6ae4.0tLyirbYWKDqUAcw"
 ];
 // let currentApiKeyIndex = 0; // 這個變數不再需要，可以刪除或註解掉
-const API_URL = "https://gen.pollinations.ai/v1/chat/completions";
-const MODEL = "gemini";
+const API_URL = "https://open.bigmodel.cn/api/paas/v4/chat/completions";
+const MODEL = "glm-4.7-flash";
 
 		// 新配置（僅實用寫作使用）
 const PRACTICAL_API_KEYS = [
-   "pk_D77NeM4n6GnNCYbo",
-"pk_c17y17tQ3BY71cpd",
-"pk_c17y17tQ3BY71cpd",
-"pk_Ax3rRTHkrdTQVIGD",
-"pk_dGVqEggn4T4dwQI3",
-"pk_YIFWnDFts0quviE0"
+   "c43794c4fd6f460c9e154f81034e6ae4.0tLyirbYWKDqUAcw"
 ];
-const PRACTICAL_API_URL = "https://gen.pollinations.ai/v1/chat/completions";
-const PRACTICAL_MODEL = "gemini";
+const PRACTICAL_API_URL = "https://open.bigmodel.cn/api/paas/v4/chat/completions";
+const PRACTICAL_MODEL = "glm-4.7-flash";
 
 
 
@@ -7837,7 +7828,7 @@ ${topicInstruction}
                 max_tokens: 64000
             };
            try {
-    const response = await callAPI(requestBody, 'gemini');
+    const response = await callAPI(requestBody, 'glm-4.7-flash');
     const parsed = parsePracticalResponse(response);
     parsed.type = practicalType;
     allQuestions.push(parsed);

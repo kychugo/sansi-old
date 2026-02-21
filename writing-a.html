@@ -425,11 +425,11 @@
                     <label>選擇模型</label>
                      <div class="style-selector">
                         <label>
-                            <input type="radio" name="model" value="zai-glm-4.6" checked>
+                            <input type="radio" name="model" value="glm-4.7-flash" checked>
                             <span>魚木</span>
                         </label>
                         <label>
-                            <input type="radio" name="model" value="qwen-3-235b-a22b-instruct-2507">
+                            <input type="radio" name="model" value="glm-4.7-flash">
                             <span>水心</span>
                         </label>
                     </div>
@@ -605,10 +605,10 @@
             const copyBtn = document.getElementById('copy-btn');
             
 const API_KEYS = [
-  "friend1"
+  "c43794c4fd6f460c9e154f81034e6ae4.0tLyirbYWKDqUAcw"
 ];
 // let currentApiKeyIndex = 0; // 這個變數不再需要，可以刪除或註解掉
-const API_URL = "https://api-fawn-chi.vercel.app/api/v1/chat/completions";
+const API_URL = "https://open.bigmodel.cn/api/paas/v4/chat/completions";
 
             // 索引，用來記錄我們現在該用第幾個 KEY。
             // 程式中，列表的第一個項目是從 0 開始算，所以 0 代表第一個 KEY。
