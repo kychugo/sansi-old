@@ -134,6 +134,42 @@
 
         @keyframes fadeIn { to { opacity: 0.7; } }
         @keyframes fadeInText { to { opacity: 0.6; } }
+
+        .copyright {
+            position: fixed;
+            bottom: 18px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 5;
+            text-align: center;
+            pointer-events: none;
+            font-family: "Noto Serif TC", serif;
+            color: #48585A;
+            line-height: 1.8;
+            letter-spacing: 1px;
+            opacity: 0;
+            animation: fadeInText 1s ease-in forwards 0.6s;
+            white-space: nowrap;
+        }
+
+        .copyright .copyright-main {
+            font-size: 11px;
+            font-weight: 500;
+            opacity: 0.75;
+        }
+
+        .copyright .copyright-sub {
+            font-size: 10px;
+            opacity: 0.6;
+        }
+
+        .copyright .copyright-divider {
+            width: 40px;
+            height: 1px;
+            background: #48585A;
+            opacity: 0.3;
+            margin: 4px auto;
+        }
     </style>
 </head>
 <body>
@@ -146,6 +182,13 @@
 
     <div class="cta-text">點擊前往</div>
     <div class="seal" id="seal">神思</div>
+
+    <div class="copyright">
+        <div class="copyright-main">Copyright © 2025 陳冠健. All rights reserved</div>
+        <div class="copyright-divider"></div>
+        <div class="copyright-sub">黃子謙於2026/1/9於陳冠健老師授權下複製</div>
+        <div class="copyright-sub">感謝授權 🙏</div>
+    </div>
 
     <script>
 

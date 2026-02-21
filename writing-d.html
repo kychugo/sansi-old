@@ -682,11 +682,11 @@
                     <label>選擇模型</label>
                      <div class="style-selector">
                         <label>
-                            <input type="radio" name="model" value="zai-glm-4.6" checked>
+                            <input type="radio" name="model" value="glm-4.7-flash" checked>
                             <span>魚木</span>
                         </label>
                         <label>
-                            <input type="radio" name="model" value="qwen-3-235b-a22b-instruct-2507">
+                            <input type="radio" name="model" value="glm-4.7-flash">
                             <span>水心</span>
                         </label>
                     </div>
@@ -1062,10 +1062,10 @@
             const copyBtn = document.getElementById('copy-btn');
             
 const API_KEYS = [
- "friend1"
+ "c43794c4fd6f460c9e154f81034e6ae4.0tLyirbYWKDqUAcw"
 ];
 // let currentApiKeyIndex = 0; // 這個變數不再需要，可以刪除或註解掉
-const API_URL = "https://api-fawn-chi.vercel.app/api/v1/chat/completions";
+const API_URL = "https://open.bigmodel.cn/api/paas/v4/chat/completions";
 
             
             const originalCopyIcon = `<svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 0 24 24" width="20px"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-5zm0 16H8V7h11v14z"/></svg>`;
