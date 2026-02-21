@@ -6230,8 +6230,7 @@ const MODEL = "glm-4.7-flash";
 const FALLBACK_API_URL = "https://gen.pollinations.ai/v1/chat/completions";
 const FALLBACK_API_KEY = "sk_vuIaBgMibteEX3Z0gLoM4DHfE8cDfQOj";
 const FALLBACK_MODEL = "gemini-search";
-
-		// 新配置（僅實用寫作使用）
+const INTERMEDIATE_MODEL = "glm-4-flash-250414";
 const PRACTICAL_API_KEYS = [
    "c43794c4fd6f460c9e154f81034e6ae4.0tLyirbYWKDqUAcw"
 ];
@@ -7878,19 +7877,41 @@ async function callAPI(requestBody, modelOverride = null) {
     }
     
     if (!response || !response.ok) {
-        // 主要 API 失敗，切換至備用 API (pollinations.ai)
-        console.warn(`主要 API 失敗，切換至備用 API...`);
-        response = await fetch(FALLBACK_API_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${FALLBACK_API_KEY}`
-            },
-            body: JSON.stringify({
-                ...requestBody,
-                model: FALLBACK_MODEL
-            })
-        });
+        // 主要 API 失敗，切換至中間備用模型 (glm-4-flash-250414)
+        console.warn(`主要 API 失敗，切換至中間備用模型...`);
+        let intermediateResponse = null;
+        try {
+            intermediateResponse = await fetch(API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${selectedApiKey}`
+                },
+                body: JSON.stringify({
+                    ...requestBody,
+                    model: INTERMEDIATE_MODEL
+                })
+            });
+        } catch (intermediateError) {
+            console.warn('中間備用模型請求出錯:', intermediateError);
+        }
+        if (intermediateResponse && intermediateResponse.ok) {
+            response = intermediateResponse;
+        } else {
+            // 切換至備用 API (pollinations.ai)
+            console.warn(`中間備用模型失敗，切換至備用 API...`);
+            response = await fetch(FALLBACK_API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${FALLBACK_API_KEY}`
+                },
+                body: JSON.stringify({
+                    ...requestBody,
+                    model: FALLBACK_MODEL
+                })
+            });
+        }
     }
 
     updateProgressBar(60);

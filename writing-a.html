@@ -612,6 +612,7 @@ const API_URL = "https://open.bigmodel.cn/api/paas/v4/chat/completions";
 const FALLBACK_API_URL = "https://gen.pollinations.ai/v1/chat/completions";
 const FALLBACK_API_KEY = "sk_vuIaBgMibteEX3Z0gLoM4DHfE8cDfQOj";
 const FALLBACK_MODEL = "gemini-search";
+const INTERMEDIATE_MODEL = "glm-4-flash-250414";
 
             // 索引，用來記錄我們現在該用第幾個 KEY。
             // 程式中，列表的第一個項目是從 0 開始算，所以 0 代表第一個 KEY。
@@ -695,8 +696,26 @@ const FALLBACK_MODEL = "gemini-search";
                 
                 // 如果 for 迴圈跑完了，但函式還沒返回，
                 // 這就意味著所有的 Key 都嘗試失敗了。
-                // 此時，嘗試備用 API (pollinations.ai)。
-                console.warn("所有主要 API Key 均失敗，切換至備用 API (pollinations.ai)...");
+                // 此時，嘗試中間備用模型 (glm-4-flash-250414)。
+                console.warn("所有主要 API Key 均失敗，切換至中間備用模型 (glm-4-flash-250414)...");
+                try {
+                    const intermediateResponse = await fetch(API_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${API_KEYS[0]}`
+                        },
+                        body: JSON.stringify({ ...payload, model: INTERMEDIATE_MODEL })
+                    });
+                    if (intermediateResponse.ok) {
+                        const intermediateData = await intermediateResponse.json();
+                        return intermediateData;
+                    }
+                } catch (intermediateError) {
+                    console.error("中間備用模型也失敗:", intermediateError);
+                }
+                // 嘗試備用 API (pollinations.ai)。
+                console.warn("切換至備用 API (pollinations.ai)...");
                 try {
                     const fallbackResponse = await fetch(FALLBACK_API_URL, {
                         method: 'POST',

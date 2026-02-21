@@ -1683,6 +1683,7 @@ const MODEL = "glm-4.7-flash";
 const FALLBACK_API_URL = "https://gen.pollinations.ai/v1/chat/completions";
 const FALLBACK_API_KEY = "sk_vuIaBgMibteEX3Z0gLoM4DHfE8cDfQOj";
 const FALLBACK_MODEL = "gemini-search";
+const INTERMEDIATE_MODEL = "glm-4-flash-250414";
 
 // 懸浮窗狀態管理
 let isFloatingEnabled = true;
@@ -2119,8 +2120,25 @@ async function callApi(prompt) {
         if (data.error) throw new Error(`API 返回錯誤: ${data.error.message}`);
         return data;
     } catch (error) {
-        // 主要 API 失敗，切換至備用 API (pollinations.ai)
-        console.warn('主要 API 調用失敗，嘗試備用 API...', error);
+        // 主要 API 失敗，切換至中間備用模型 (glm-4-flash-250414)
+        console.warn('主要 API 調用失敗，嘗試中間備用模型...', error);
+        try {
+            const intermediateResponse = await fetch(API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({ ...requestBody, model: INTERMEDIATE_MODEL })
+            });
+            if (!intermediateResponse.ok) throw new Error(`中間備用模型請求失敗: ${intermediateResponse.status}`);
+            const intermediateData = await intermediateResponse.json();
+            if (intermediateData.error) throw new Error(`中間備用模型返回錯誤: ${intermediateData.error.message}`);
+            return intermediateData;
+        } catch (intermediateError) {
+            console.warn('中間備用模型也失敗，嘗試備用 API...', intermediateError);
+        }
+        // 切換至備用 API (pollinations.ai)
         try {
             const fallbackResponse = await fetch(FALLBACK_API_URL, {
                 method: 'POST',
