@@ -3253,6 +3253,9 @@ const friendsTabs = document.querySelectorAll('.friends-tabs .tab');
         let currentApiKeyIndex = 0;
         const API_URL = "https://open.bigmodel.cn/api/paas/v4/chat/completions";
         const MODEL = "glm-4.7-flash";
+        const FALLBACK_API_URL = "https://gen.pollinations.ai/v1/chat/completions";
+        const FALLBACK_API_KEY = "sk_vuIaBgMibteEX3Z0gLoM4DHfE8cDfQOj";
+        const FALLBACK_MODEL = "gemini-search";
 
         const chatOutput = document.getElementById('chat-output');
         const userInput = document.getElementById('user-input');
@@ -5499,20 +5502,22 @@ function updateAllAIMessageNames() {
 敘事抒情文筆記如下：請注意大綱的邏輯性、條理性以及是否包含了故事的起承轉合或三線結構（即所謂「散敘」，有以下三點要注意：其一，三線的分類範疇相同；其二，三線或有層遞關係，或能從三個角度呈現同一個主題；其三，三線的情節發展不能過於相似；其四，所分之角度能突顯與主題相關的立意。「三線」例子如下：題目為「勇氣」，則可用「年少時的勇氣」為一線、「年青時的勇氣」為二線、「年老時的勇氣」為三線；又如以「重遊舊地所見有感」，則可用在故鄉的不同「地」所見作三線分類，例如老屋、後山等。必須確保每條線的「結構段重點」清晰點明三線的分類範疇、想突顯題目的甚麼要點、與題目如何扣連等，以及「合」能統攝總結全文立意）。要逐部分分析每個結構段與題目的關係有多大，並在點評中明確指出。此外，在「改寫後的大綱」,其「結構段重點」必須交代該部份與題目之間的邏輯關係，即怎樣做到扣題。此外，由於是應試文章，因此改寫後的大綱避免過份具理論哲學性及文學性，以至於脫離了現實和日常生活，亦圍繞人在經歷的情感和體悟設定，必須減少概念模糊的術語，例如「情感載體」及「時空的共創」，請用日常化用語描述。此外，「改寫後的大綱」不宜只圍繞一件事敘寫，這樣會容易寫得太抽象，應適時加插人物與人物之間的回憶或其他經歷，令文章看起來更具體實在。此外，大綱不是全篇文章，最重要的是在點評時分析其結構段及情節大要的思路是否扣緊題目，方向是否合理、正確。`;
                 }
 
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${API_KEYS[currentApiKeyIndex]}`
-                    },
-                    body: JSON.stringify({
+                const chatPayload = {
                         model: MODEL,
                         messages: [
                             { role: 'system', content: systemPrompt },
                             ...conversationHistory
                         ],
                         max_tokens: 64000
-                    })
+                    };
+
+                let response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${API_KEYS[currentApiKeyIndex]}`
+                    },
+                    body: JSON.stringify(chatPayload)
                 });
 
                 if (!response.ok) {
@@ -5522,6 +5527,19 @@ function updateAllAIMessageNames() {
                         sendMessage();
                         return;
                     }
+                    // 切換至備用 API (pollinations.ai)
+                    console.warn(`主要 API 失敗 (${response.status})，切換至備用 API...`);
+                    response = await fetch(FALLBACK_API_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${FALLBACK_API_KEY}`
+                        },
+                        body: JSON.stringify({ ...chatPayload, model: FALLBACK_MODEL })
+                    });
+                }
+
+                if (!response.ok) {
                     throw new Error(`HTTP 錯誤！狀態：${response.status}`);
                 }
 

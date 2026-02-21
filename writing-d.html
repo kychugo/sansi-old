@@ -1066,6 +1066,9 @@ const API_KEYS = [
 ];
 // let currentApiKeyIndex = 0; // 這個變數不再需要，可以刪除或註解掉
 const API_URL = "https://open.bigmodel.cn/api/paas/v4/chat/completions";
+const FALLBACK_API_URL = "https://gen.pollinations.ai/v1/chat/completions";
+const FALLBACK_API_KEY = "sk_vuIaBgMibteEX3Z0gLoM4DHfE8cDfQOj";
+const FALLBACK_MODEL = "gemini-search";
 
             
             const originalCopyIcon = `<svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 0 24 24" width="20px"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-5zm0 16H8V7h11v14z"/></svg>`;
@@ -1169,21 +1172,35 @@ ${writingInstructions}
 請現在開始你的創作。`;
 
 
-                    const response = await fetch(API_URL, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${API_KEYS}`
-                        },
-                        body: JSON.stringify({
+                    const requestPayload = {
                             model: selectedModel,
                             messages: [
                                 { role: 'system', content: systemPrompt },
                                 { role: 'user', content: `請根據以上所有指示，為題目《${topic}》生成文章。` }
                             ],
                             stream: false
-                        })
+                        };
+
+                    let response = await fetch(API_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${API_KEYS}`
+                        },
+                        body: JSON.stringify(requestPayload)
                     });
+
+                    if (!response.ok) {
+                        console.warn(`主要 API 失敗 (${response.status})，切換至備用 API...`);
+                        response = await fetch(FALLBACK_API_URL, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${FALLBACK_API_KEY}`
+                            },
+                            body: JSON.stringify({ ...requestPayload, model: FALLBACK_MODEL })
+                        });
+                    }
 
                     if (!response.ok) {
                         throw new Error(`API 請求失敗，狀態碼：${response.status}`);

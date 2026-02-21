@@ -609,6 +609,9 @@ const API_KEYS = [
 ];
 // let currentApiKeyIndex = 0; // 這個變數不再需要，可以刪除或註解掉
 const API_URL = "https://open.bigmodel.cn/api/paas/v4/chat/completions";
+const FALLBACK_API_URL = "https://gen.pollinations.ai/v1/chat/completions";
+const FALLBACK_API_KEY = "sk_vuIaBgMibteEX3Z0gLoM4DHfE8cDfQOj";
+const FALLBACK_MODEL = "gemini-search";
 
             // 索引，用來記錄我們現在該用第幾個 KEY。
             // 程式中，列表的第一個項目是從 0 開始算，所以 0 代表第一個 KEY。
@@ -692,7 +695,25 @@ const API_URL = "https://open.bigmodel.cn/api/paas/v4/chat/completions";
                 
                 // 如果 for 迴圈跑完了，但函式還沒返回，
                 // 這就意味著所有的 Key 都嘗試失敗了。
-                // 此時，我們拋出一個最終的錯誤。
+                // 此時，嘗試備用 API (pollinations.ai)。
+                console.warn("所有主要 API Key 均失敗，切換至備用 API (pollinations.ai)...");
+                try {
+                    const fallbackResponse = await fetch(FALLBACK_API_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${FALLBACK_API_KEY}`
+                        },
+                        body: JSON.stringify({ ...payload, model: FALLBACK_MODEL })
+                    });
+                    if (!fallbackResponse.ok) {
+                        throw new Error(`備用 API 請求失敗，狀態碼：${fallbackResponse.status}`);
+                    }
+                    const fallbackData = await fallbackResponse.json();
+                    return fallbackData;
+                } catch (fallbackError) {
+                    console.error("備用 API 也失敗:", fallbackError);
+                }
                 throw new Error("所有備用的 API Key 均嘗試失敗，請檢查 Key 或網路連線。");
             }
 
